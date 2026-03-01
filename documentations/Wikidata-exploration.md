@@ -81,11 +81,11 @@ Propriétés dans position held : [member of the French National Assembly](https
 choisir à partir de 1958
 
 
-### Nombre effectif de députés pour la 5e république
+### Nombre de l'effectif de députés pour la 5e république
 
 
 
-There is an overlap of approximately 7,800 individuals who are both astronomers and physicists.
+A noter : La commande ne permet pour l'instant de distinguer le cumul des mandats et donc la répitition des individus au sein de l'effectif
 
 Please note that SPARQL operates in a layered manner: the innermost layer is executed first and the result set is sent to the next layer up.
 
@@ -96,38 +96,26 @@ WHERE {
         p:P39 ?poste.
   ?poste ps:P39 wd:Q3044918 ;
          pq:P580 ?starttime.
-  FILTER(YEAR(?starttime) > 1958)
+  FILTER(YEAR(?starttime) >= 1958)
 }
  ```
+Effectifs relevés au 1er mars 2026 : 8655
 
-### Add a filter on the birth year
 
-32866 on February 21st
+
+### Distinguer les individus au sein de l'effectif
 
 ```
-SELECT (COUNT(*) as ?eff)
-WHERE
-    {
-    ### subquery adding the distinct clause
-        {
-        SELECT DISTINCT ?item
-        WHERE {
-        ?item wdt:P31 wd:Q5; 
-              wdt:P569 ?birthDate.
-        BIND(REPLACE(str(?birthDate), "(.*)([0-9]{4})(.*)", "$2") AS ?year)
-        FILTER(xsd:integer(?year) > 1780 && xsd:integer(?year) < 1981)# Any instance of a human.
-            {?item wdt:P106 wd:Q11063}
-            UNION
-            {?item wdt:P101 wd:Q333} 
-            UNION
-            {?item wdt:P106 wd:Q169470}
-            UNION
-            {?item wdt:P101 wd:Q413}            
-            }
-        }        
-    }  
- ```
-
+SELECT (COUNT(DISTINCT ?item) as ?eff)
+WHERE {
+  ?item wdt:P31 wd:Q5 ;
+        p:P39 ?poste.
+  ?poste ps:P39 wd:Q3044918 ;
+         pq:P580 ?starttime.
+  FILTER(YEAR(?starttime) >= 1958)
+}
+```
+Nombre d'individus différents au sein de l'effectif relevé au 1 mars 2026 : 3819
 
 
 ### Les individus
@@ -136,63 +124,27 @@ WHERE
 ```
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
-SELECT ?item ?itemLabel ?year
+SELECT DISTINCT?item ?itemLabel
 WHERE {
-    {
-      
-        {?item wdt:P106 wd:Q11063}
-        UNION
-        {?item wdt:P101 wd:Q333} 
-        UNION
-        {?item wdt:P106 wd:Q169470}
-        UNION
-        {?item wdt:P101 wd:Q413} 
-    }  
-    ?item wdt:P31 wd:Q5;  # Any instance of a human.
-            wdt:P569 ?birthDate.
-  BIND(REPLACE(str(?birthDate), "(.*)([0-9]{4})(.*)", "$2") AS ?year)
-        FILTER(xsd:integer(?year) > 1780 && xsd:integer(?year) < 1981)# Any instance of a human.
-    
+  ?item wdt:P31 wd:Q5 ;
+        p:P39 ?poste.
+  SERVICE wikibase:label {
+# Retourne les labels en français
+bd:serviceParam wikibase:language "fr" }
+  ?poste ps:P39 wd:Q3044918 ;
+         pq:P580 ?starttime.
+  FILTER(YEAR(?starttime) >= 1958)
+}
+  ```  
+  Les noms des 3819 députés apparaissent
+
     ### Two ways of getting labels
     # SERVICE wikibase:label { bd:serviceParam wikibase:language "en" }
 
     ## This is useful for query from external tool
     ?item rdfs:label ?itemLabel.
     FILTER(LANG(?itemLabel) = 'en')
-    }  
-LIMIT 100
-```
 
-
-### Count population with English labels
-
-
-```
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-SELECT (COUNT(*) as ?eff)
-WHERE
-    {
-    ### subquery adding the distinct clause
-        {
-        SELECT DISTINCT ?item ?itemLabel ?year
-        WHERE {
-        ?item wdt:P31 wd:Q5; 
-              wdt:P569 ?birthDate.
-        BIND(REPLACE(str(?birthDate), "(.*)([0-9]{4})(.*)", "$2") AS ?year)
-        FILTER(xsd:integer(?year) > 1780 && xsd:integer(?year) < 1981)# Any instance of a human.
-            {?item wdt:P106 wd:Q11063}
-            UNION
-            {?item wdt:P101 wd:Q333} 
-            UNION
-            {?item wdt:P106 wd:Q169470}
-            UNION
-            {?item wdt:P101 wd:Q413}            
-        ?item rdfs:label ?itemLabel.
-        FILTER(LANG(?itemLabel) = 'en')
-            }
-        }        
-    }  
- ```
 
 
 ### Number of individuals without English label
