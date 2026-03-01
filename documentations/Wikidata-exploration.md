@@ -32,22 +32,23 @@ Information disponible dans Wikidata concernant la population étudiée.
 
 ## Inspection des notices
 
+On décide de prendre la population des députés depuis la création de l'Assemblée Nationale française créée en 1958 sous la 5e république.
+On effectue les recherches à partir de la notice de l'organe politique :
+[National Assembly](https://www.wikidata.org/wiki/Q193582)
+
 On choisit quelques personnes et on inspecte leurs notices dans Wikidata afin d'observer quelles propriétés permettent de retrouver la population.
 
 Par exemple:
 
-* [Victor Ambartsumian](http://www.wikidata.org/entity/Q164396)
-  * Noter propriétés 'employer' et 'position held'
-  * Cf. sa [notice dans DBpedia](https://dbpedia.org/resource/Viktor_Ambartsumian)
-  * Noter la différence entre une ontologie centrée propriétés et une centrée assertions qui en fait contient des temporalités implicites
-* [Werner Heisenberg](http://www.wikidata.org/entity/Q40904)
+* [Mikaele Seo](https://www.wikidata.org/wiki/Q112651641)
+  * Noter propriétés 'member of', 'party' et 'position held'
+  * Cf. sa [notice dans DBpedia](https://dbpedia.org/page/Mikaele_Seo)
+  * Noter les différents mandats entre assemblé territoriale de Walis et Futuna et l'Assemblée nationatiale française
+* [Bérenger Cernon](https://www.wikidata.org/wiki/Q127255949)
 
 
 On retient quelques propriétés qui permettent de retrouver toute la population:
-* [occupation](https://m.wikidata.org/wiki/Property:P106)
-* [field of work](https://m.wikidata.org/wiki/Property:P101)
-
-
+* [position held](https://www.wikidata.org/wiki/Property:P39)
 
 ## On effectue des requêtes pour vérifier quels effectifs sont disponibles et de qui il s'agit
 
@@ -64,60 +65,25 @@ WHERE {
 }  
 ```
 
+[member of the French National Assembly](https://www.wikidata.org/wiki/Q3044918) is part of : 
+
+[National Assembly](https://www.wikidata.org/wiki/Q193582) qui représente la chambre basse du Parlement français sous la 5e république à partir de 1958.
+
+[National Assembly of the 4th Republic](https://www.wikidata.org/wiki/Q2867087) qui représente la chambre du parlement bicaméral français de la 4e république entre 1946 et 1958.
+
+[Chamber of Deputies](https://www.wikidata.org/wiki/Q320283) qui représente la chambre basse française de 1830 à 1848 et de 1875 à 1942.
+
+## Nécessite d'utiliser des propriétés pour affiner la recherche et restreindre les mandats à la 5e République
+
+Propriétés dans position held : [member of the French National Assembly](https://www.wikidata.org/wiki/Q3044918) : 
+
+[start time](https://www.wikidata.org/wiki/Property:P580)
+choisir à partir de 1958
 
 
-
-```
-SELECT (COUNT(*) as ?eff)
-WHERE {
-    ?item wdt:P31 wd:Q5;  # Any instance of a human.
-    {?item wdt:P106 wd:Q11063}
-    UNION
-    {?item wdt:P101 wd:Q333}            
-}  
- ```
-
-#### Physiciens
-
-41629 le le 16 février 2026
-
-```
-SELECT (COUNT(*) as ?eff)
-WHERE {
-    ?item wdt:P31 wd:Q5;  # Any instance of a human.
-    {?item wdt:P106 wd:Q169470}
-    UNION
-    {?item wdt:P101 wd:Q413}            
-}  
- ```
+### Nombre effectif de députés pour la 5e république
 
 
-#### Les deux
-
-
-
-55956 le le 16 février 2026.
-
-Mais attention: en fait c'est l'addition des deux, cf. ci-dessous
-
-```
-SELECT (COUNT(*) as ?eff)
-WHERE {
-    ?item wdt:P31 wd:Q5;  # Any instance of a human.
-    {?item wdt:P106 wd:Q11063}
-    UNION
-    {?item wdt:P101 wd:Q333} 
-    UNION
-    {?item wdt:P106 wd:Q169470}
-    UNION
-    {?item wdt:P101 wd:Q413}            
-}  
- ```
-
-
-### Nombre effectif de personnes
-
-48094 le le 16 février 2026.
 
 There is an overlap of approximately 7,800 individuals who are both astronomers and physicists.
 
@@ -126,19 +92,12 @@ Please note that SPARQL operates in a layered manner: the innermost layer is exe
 ```
 SELECT (COUNT(*) as ?eff)
 WHERE {
-    ### subquery adding the distinct clause
-    SELECT DISTINCT ?item
-    WHERE {
-    ?item wdt:P31 wd:Q5;  # Any instance of a human.
-    {?item wdt:P106 wd:Q11063}
-    UNION
-    {?item wdt:P101 wd:Q333} 
-    UNION
-    {?item wdt:P106 wd:Q169470}
-    UNION
-    {?item wdt:P101 wd:Q413}            
-      }
-}  
+  ?item wdt:P31 wd:Q5 ;
+        p:P39 ?poste.
+  ?poste ps:P39 wd:Q3044918 ;
+         pq:P580 ?starttime.
+  FILTER(YEAR(?starttime) > 1958)
+}
  ```
 
 ### Add a filter on the birth year
