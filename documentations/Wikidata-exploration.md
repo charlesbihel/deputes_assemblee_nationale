@@ -224,7 +224,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-SELECT ?p ?propLabel ?eff
+SELECT ?p ?propLabel ?eff ('[note]' as ?notes)
 WHERE {
 {
     SELECT DISTINCT  ?p  (COUNT(*) as ?eff)
@@ -252,7 +252,17 @@ Dans ce cas il faut restreindre la période ou limiter le nombre de clauses UNIO
 
 Nombre de propriétés différents au sein de l'effectif relevé au 2 mars 2026 : 765
 
-On exporte ensuite cette liste sous forme d'une _table HTML_ afin de documenter la suite des opérations. On ouvre la page HTML avec VS Code, on peut mettre en forme avec la commande (click droit) _format document_, puis on copie seulement la partie 'table' depuis la balise &lt;table&gt; jusqu'à &lt;/table&gt;, balises comprises, et on la colle dans un nouveau document Markdown, cf. [Wikidata-liste-proprietes-population.md](Wikidata-liste-proprietes-population.md)
+This list is then exported and transformed to a table in order to document the sequence of operations. This is done as follows:
+
+* execute the query then download the result in csv format into your projet's repository. Cf. the file in this directory: data_queries/Wikidata/wdt_population_outgoing_properties_20260302.csv
+* open the CSV in VSCode as text and convert it to a Markdown Table using the plugin 'CSV to Markdown Table (phoihos)'
+* copy the whole table and paste it a new Markdown document, cf. [Wikidata-liste-proprietes-population.md](Wikidata-liste-proprietes-population.md)
+* close the CSV file
+
+In the column 'notes' of the property table you can add links to the pages where you document the treatement of the corresponding information.   
+
+
+
 
 
 On pourra prendre des notes concernant les opérations effectuées sur les différentes propriétés directement dans ce document et documenter ainsi les choix effectués.
@@ -394,7 +404,7 @@ On doit dans cette requête sortir du cadre classique de la simple propriété '
         BIND(REPLACE(str(?endTime), "(.*)([0-9]{4})(.*)", "$2") AS ?endYear)
         
         BIND(REPLACE(str(?birthDate), "(.*)([0-9]{4})(.*)", "$2") AS ?birthYear)
-        FILTER(xsd:integer(?birthYear) > 1880)
+        FILTER(xsd:integer(?birthYear) > 1800)
             
         SERVICE wikibase:label { bd:serviceParam wikibase:language "fr" }
         }
@@ -428,7 +438,7 @@ SELECT DISTINCT ?item ?itemLabel ?birthYear ?statement ?organization ?organizati
         BIND(REPLACE(str(?endTime), "(.*)([0-9]{4})(.*)", "$2") AS ?endYear)
         
         BIND(REPLACE(str(?birthDate), "(.*)([0-9]{4})(.*)", "$2") AS ?birthYear)
-        FILTER(xsd:integer(?birthYear) > 1880)
+        FILTER(xsd:integer(?birthYear) > 1800)
             
         SERVICE wikibase:label { bd:serviceParam wikibase:language "fr" }
         }
