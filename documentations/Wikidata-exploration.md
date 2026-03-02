@@ -147,105 +147,63 @@ bd:serviceParam wikibase:language "fr" }
 
 
 
-### Number of individuals without English label
+### Nombre de députés de la 5e République par tranche de décennies
 
 ```
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-SELECT (COUNT(*) as ?eff)
-WHERE
-    {
-    ### sous requête qui ajoute la clause distinct
-        {
-        SELECT DISTINCT ?item ?itemLabel ?year
-        WHERE {
-        ?item wdt:P31 wd:Q5; 
-              wdt:P569 ?birthDate.
-        BIND(REPLACE(str(?birthDate), "(.*)([0-9]{4})(.*)", "$2") AS ?year)
-        FILTER(xsd:integer(?year) > 1780 && xsd:integer(?year) < 1981)# Any instance of a human.
-            {?item wdt:P106 wd:Q11063}
-            UNION
-            {?item wdt:P101 wd:Q333} 
-            UNION
-            {?item wdt:P106 wd:Q169470}
-            UNION
-            {?item wdt:P101 wd:Q413}            
-        MINUS {?item rdfs:label ?itemLabel.
-            FILTER(LANG(?itemLabel) = 'en')
-            }
-            }
-        }        
-    }  
+SELECT ?decennie (COUNT(DISTINCT?item)AS ?eff)
+WHERE {
+  ?item wdt:P31 wd:Q5 ;
+        p:P39 ?poste.
+ 
+  ?poste ps:P39 wd:Q3044918 ;
+         pq:P580 ?starttime.
+  FILTER(YEAR(?starttime) >= 1958)
+#FLOOR arrondit à la décennie inférieure
+#ex:1967 FLOOR(1967/10)*10)
+BIND(CONCAT(STR(FLOOR(YEAR(?starttime)/10)*10), "s")AS ?decennie)
+}
+     GROUP BY ?decennie
+     ORDER BY ?decennie
  ```
+1950s	388
 
+1960s	632
 
-### Individuals without English label
+1970s	587
 
-Inspect individuals' cards and observe their properties
+1980s	768
 
-```
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-SELECT ?item ?year (group_concat(?iso_lang ; separator = ',') as ?langs) (max(?itemLabel) as ?maxLabel)
-WHERE
-    { 
-       { SELECT DISTINCT ?item ?year
-        WHERE {
-        ?item wdt:P31 wd:Q5; 
-              wdt:P569 ?birthDate.
-        BIND(REPLACE(str(?birthDate), "(.*)([0-9]{4})(.*)", "$2") AS ?year)
-        FILTER(xsd:integer(?year) > 1780 && xsd:integer(?year) < 1981)# Any instance of a human.
-            {?item wdt:P106 wd:Q11063}
-            UNION
-            {?item wdt:P101 wd:Q333} 
-            UNION
-            {?item wdt:P106 wd:Q169470}
-            UNION
-            {?item wdt:P101 wd:Q413}            
-        MINUS {?item rdfs:label ?itemLabel.
-            FILTER(LANG(?itemLabel) = 'en')
-            }
-            }
-        }        
-      
-        ?item rdfs:label ?itemLabel. 
-		BIND(LANG(?itemLabel) as ?iso_lang)
-            
-       }
-	   GROUP BY ?item ?year
-	   ORDER BY ?item
-	   LIMIT 100
- ```
+1990s	807
 
+2000s	747
+
+2010s	1130
+
+2020s	855
+
+Certains députés sont présents d'une décennie sur l'autre ce qui augmente l'effectif total
 
 
 ### Persons filtered by birth year
 
-Par exemple ici les astronomes et physiciens du 19e et 20e siècles 
+Par exemple ici les députés de la 5e République
 
 
 ```
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-
 SELECT DISTINCT ?item ?itemLabel ?year
         WHERE {
         ?item wdt:P31 wd:Q5; 
               wdt:P569 ?birthDate.
         BIND(REPLACE(str(?birthDate), "(.*)([0-9]{4})(.*)", "$2") AS ?year)
-        FILTER(xsd:integer(?year) > 1780 && xsd:integer(?year) < 1981)# Any instance of a human.
-            {?item wdt:P106 wd:Q11063}
-            UNION
-            {?item wdt:P101 wd:Q333} 
-            UNION
-            {?item wdt:P106 wd:Q169470}
-            UNION
-            {?item wdt:P101 wd:Q413}            
-        ?item rdfs:label ?itemLabel.
-        FILTER(LANG(?itemLabel) = 'en')
+        FILTER(xsd:integer(?year) > 1870)# Any instance of a human.
+           ?item wdt:P31 wd:Q5 ;
+        p:P39 ?poste.
+  ?poste ps:P39 wd:Q3044918 ;
+         pq:P580 ?starttime.
+  FILTER(YEAR(?starttime) >= 1958)
             }
-ORDER BY ?item            
-LIMIT 20
+ORDER BY ?item 
 ```
 NB: il peut y avoir des doublons si les dates de naissance sont multiples. La clause DISTINCT permet d'enlever les doublons il faut toutefois enlever la variable *?birthDate* de la sortie et laisser seulement l'année
 
@@ -255,7 +213,7 @@ NB: il peut y avoir des doublons si les dates de naissance sont multiples. La cl
 ## Lister les propriétés disponibles avec effectifs
 
 
-!!! filtrer par discipline et période et voir différentes propriétés
+!!! Les effectifs des propriétés sont multipliés par rapport aux nombres d'individus
 
 ### Sortantes
 
@@ -269,19 +227,13 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 SELECT ?p ?propLabel ?eff
 WHERE {
 {
-    SELECT DISTINCT  ?p  (count(*) as ?eff)
+    SELECT DISTINCT  ?p  (COUNT(*) as ?eff)
     WHERE {
-        ?item wdt:P31 wd:Q5; 
-             wdt:P569 ?birthDate.
-        BIND(REPLACE(str(?birthDate), "(.*)([0-9]{4})(.*)", "$2") AS ?year)
-        FILTER(xsd:integer(?year) > 1780 && xsd:integer(?year) < 1981)# Any instance of a human.
-            {?item wdt:P106 wd:Q11063}
-            UNION
-            {?item wdt:P101 wd:Q333} 
-            UNION
-            {?item wdt:P106 wd:Q169470}
-            UNION
-            {?item wdt:P101 wd:Q413}.
+         ?item wdt:P31 wd:Q5 ;
+        p:P39 ?poste.
+  ?poste ps:P39 wd:Q3044918 ;
+         pq:P580 ?starttime.
+  FILTER(YEAR(?starttime) >= 1958)
 			?item ?p ?o.
         }
 		GROUP BY ?p
@@ -289,14 +241,16 @@ WHERE {
     ?prop wikibase:directClaim ?p .
 
     ?prop rdfs:label ?propLabel.
-        FILTER(LANG(?propLabel) = 'en')
+        FILTER(LANG(?propLabel) = 'fr')
     }  
-ORDER BY DESC(?eff) 
+ORDER BY DESC(?eff)  
 ```
 
 NB Noter qu'il peut y avoir des problèmes de time-out, la requête est trop longue et on a un message d'erreur.
 <br/>
 Dans ce cas il faut restreindre la période ou limiter le nombre de clauses UNION et décomposer la requête en différentes parties.
+
+Nombre de propriétés différents au sein de l'effectif relevé au 2 mars 2026 : 765
 
 On exporte ensuite cette liste sous forme d'une _table HTML_ afin de documenter la suite des opérations. On ouvre la page HTML avec VS Code, on peut mettre en forme avec la commande (click droit) _format document_, puis on copie seulement la partie 'table' depuis la balise &lt;table&gt; jusqu'à &lt;/table&gt;, balises comprises, et on la colle dans un nouveau document Markdown, cf. [Wikidata-liste-proprietes-population.md](Wikidata-liste-proprietes-population.md)
 
@@ -316,22 +270,12 @@ WHERE {
 {
     SELECT DISTINCT  ?p  (count(*) as ?eff) ?itemType
     WHERE {
-        ?item wdt:P31 wd:Q5; 
-             wdt:P569 ?birthDate.
-        BIND(REPLACE(str(?birthDate), "(.*)([0-9]{4})(.*)", "$2") AS ?year)
-        FILTER(xsd:integer(?year) > 1780 && xsd:integer(?year) < 1981)# Any instance of a human.
-            {?item wdt:P106 wd:Q11063.
-			BIND ('astronomer' as ?itemType)}
-            UNION
-            {?item wdt:P101 wd:Q333.
-			BIND ('astronomer' as ?itemType).} 
-            UNION
-            {?item wdt:P106 wd:Q169470.
-			BIND ('physicist' as ?itemType)}
-            UNION
-            {?item wdt:P101 wd:Q413.
-			BIND ('physicist' as ?itemType)}
-			.
+        ?item wdt:P31 wd:Q5 ;
+        p:P39 ?poste.
+ 
+  ?poste ps:P39 wd:Q3044918 ;
+         pq:P580 ?starttime.
+  FILTER(YEAR(?starttime) >= 1958)
 			?item ?p ?o.
         }
 		GROUP BY ?p ?itemType
@@ -341,7 +285,7 @@ WHERE {
     ?prop wikibase:directClaim ?p .
 
     ?prop rdfs:label ?propLabel.
-        FILTER(LANG(?propLabel) = 'en')
+        FILTER(LANG(?propLabel) = 'fr')
     }  
 ORDER BY ?propLabel ?itemType 
 ```
@@ -366,22 +310,11 @@ WHERE {
 {
     SELECT DISTINCT  ?p  (count(*) as ?eff) ?itemType
     WHERE {
-        ?item wdt:P31 wd:Q5; 
-             wdt:P569 ?birthDate.
-        BIND(REPLACE(str(?birthDate), "(.*)([0-9]{4})(.*)", "$2") AS ?year)
-        FILTER(xsd:integer(?year) > 1780 && xsd:integer(?year) < 1981)# Any instance of a human.
-            {?item wdt:P106 wd:Q11063.
-			BIND ('astronomer' as ?itemType)}
-            UNION
-            {?item wdt:P101 wd:Q333.
-			BIND ('astronomer' as ?itemType).} 
-            UNION
-            {?item wdt:P106 wd:Q169470.
-			BIND ('physicist' as ?itemType)}
-            UNION
-            {?item wdt:P101 wd:Q413.
-			BIND ('physicist' as ?itemType)}
-			.
+        ?item wdt:P31 wd:Q5 ;
+        p:P39 ?poste.
+  ?poste ps:P39 wd:Q3044918 ;
+         pq:P580 ?starttime.
+  FILTER(YEAR(?starttime) >= 1958)
 			?item ?p ?o.
         }
 		GROUP BY ?p ?itemType
@@ -390,12 +323,11 @@ WHERE {
     ?prop wikibase:directClaim ?p .
 
     ?prop rdfs:label ?propLabel.
-        FILTER(LANG(?propLabel) = 'en')
+        FILTER(LANG(?propLabel) = 'fr')
     }  
 	}
 	GROUP BY ?p ?propLabel
      ORDER BY desc(?max_eff)
-
 ```
 
 
@@ -412,17 +344,11 @@ WHERE {
 {
     SELECT DISTINCT  ?p  (count(*) as ?eff)
     WHERE {
-        ?item wdt:P31 wd:Q5; 
-             wdt:P569 ?birthDate.
-        BIND(REPLACE(str(?birthDate), "(.*)([0-9]{4})(.*)", "$2") AS ?year)
-        FILTER(xsd:integer(?year) > 1780 && xsd:integer(?year) < 1981)# Any instance of a human.
-            {?item wdt:P106 wd:Q11063}
-            UNION
-            {?item wdt:P101 wd:Q333} 
-            UNION
-            {?item wdt:P106 wd:Q169470}
-            UNION
-            {?item wdt:P101 wd:Q413}.
+         ?item wdt:P31 wd:Q5 ;
+        p:P39 ?poste.
+  ?poste ps:P39 wd:Q3044918 ;
+         pq:P580 ?starttime.
+  FILTER(YEAR(?starttime) >= 1958)
 
             ## inversed triple
 			?s ?p ?item.
@@ -432,7 +358,7 @@ WHERE {
     ?prop wikibase:directClaim ?p .
 
     ?prop rdfs:label ?propLabel.
-        FILTER(LANG(?propLabel) = 'en')
+        FILTER(LANG(?propLabel) = 'fr')
     }  
 ORDER BY DESC(?eff) 
  ```
@@ -448,9 +374,11 @@ On doit dans cette requête sortir du cadre classique de la simple propriété '
                     ?startYear ?endYear  ?startTime ?endTime
     where {
             
-        {?item wdt:P106 wd:Q11063}
-                UNION
-                {?item wdt:P101 wd:Q333}
+         {?item wdt:P31 wd:Q5 ;
+        p:P39 ?poste.
+  ?poste ps:P39 wd:Q3044918 ;
+         pq:P580 ?starttime.
+  FILTER(YEAR(?starttime) >= 1958)}
             
         ?item wdt:P31 wd:Q5; # Any instance of a human.
                 wdt:P569 ?birthDate;
@@ -466,9 +394,43 @@ On doit dans cette requête sortir du cadre classique de la simple propriété '
         BIND(REPLACE(str(?endTime), "(.*)([0-9]{4})(.*)", "$2") AS ?endYear)
         
         BIND(REPLACE(str(?birthDate), "(.*)([0-9]{4})(.*)", "$2") AS ?birthYear)
-        FILTER(xsd:integer(?birthYear) > 1700 && xsd:integer(?birthYear) < 1801)
+        FILTER(xsd:integer(?birthYear) > 1880)
             
-        SERVICE wikibase:label { bd:serviceParam wikibase:language "en" }
+        SERVICE wikibase:label { bd:serviceParam wikibase:language "fr" }
+        }
+    ORDER BY ?birthYear ?startYear
+```
+### Exemple en se concentrant sur les fonctions assumées par les individus
+
+
+```
+SELECT DISTINCT ?item ?itemLabel ?birthYear ?statement ?organization ?organizationLabel 
+                    ?startYear ?endYear  ?startTime ?endTime
+    where {
+            
+         {?item wdt:P31 wd:Q5 ;
+        p:P39 ?poste.
+  ?poste ps:P39 wd:Q3044918 ;
+         pq:P580 ?starttime.
+  FILTER(YEAR(?starttime) >= 1958)}
+            
+        ?item wdt:P31 wd:Q5; # Any instance of a human.
+                wdt:P569 ?birthDate;
+                # member of
+                p:P39 ?statement.
+            ?statement ps:P39 ?organization.
+        OPTIONAL {
+                        ?statement pq:P580 ?startTime;
+                        pq:P582 ?endTime.
+            }
+        
+        BIND(REPLACE(str(?startTime), "(.*)([0-9]{4})(.*)", "$2") AS ?startYear)
+        BIND(REPLACE(str(?endTime), "(.*)([0-9]{4})(.*)", "$2") AS ?endYear)
+        
+        BIND(REPLACE(str(?birthDate), "(.*)([0-9]{4})(.*)", "$2") AS ?birthYear)
+        FILTER(xsd:integer(?birthYear) > 1880)
+            
+        SERVICE wikibase:label { bd:serviceParam wikibase:language "fr" }
         }
     ORDER BY ?birthYear ?startYear
 ```
@@ -480,15 +442,18 @@ On doit dans cette requête sortir du cadre classique de la simple propriété '
                     ?startYear ?endYear  ?startTime ?endTime
     where {
             
-        {?item wdt:P106 wd:Q11063}
-                UNION
-                {?item wdt:P101 wd:Q333}
+         {?item wdt:P31 wd:Q5 ;
+        p:P39 ?poste.
+  ?poste ps:P39 wd:Q3044918 ;
+         pq:P580 ?starttime.
+  FILTER(YEAR(?starttime) >= 1958)
+          }
             
         ?item wdt:P31 wd:Q5; # Any instance of a human.
                 wdt:P569 ?birthDate;
                 # member of
-                # p:P463 ?statement.
-                # ?statement ps:P463 ?organization.
+                # p:P39 ?statement.
+                # ?statement ps:P39 ?organization.
                 # educated at
                 p:P69 ?statement.
                 ?statement ps:P69 ?organization.
@@ -505,9 +470,9 @@ On doit dans cette requête sortir du cadre classique de la simple propriété '
         BIND(REPLACE(str(?endTime), "(.*)([0-9]{4})(.*)", "$2") AS ?endYear)
         
         BIND(REPLACE(str(?birthDate), "(.*)([0-9]{4})(.*)", "$2") AS ?birthYear)
-        FILTER(xsd:integer(?birthYear) > 1800 && xsd:integer(?birthYear) < 1901)
+        FILTER(xsd:integer(?birthYear) > 1800)
             
-        SERVICE wikibase:label { bd:serviceParam wikibase:language "en" }
+        SERVICE wikibase:label { bd:serviceParam wikibase:language "fr" }
         }
     ORDER BY ?item
     
