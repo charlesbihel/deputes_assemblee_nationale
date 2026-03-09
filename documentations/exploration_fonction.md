@@ -169,3 +169,42 @@ WHERE
 GROUP BY ?lieudenaissance ?lieudenaissanceLabel
 ORDER BY DESC(?eff)
 ```
+
+### Donner les noms, le genre et les années de naissance
+```
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+
+SELECT DISTINCT ?item  ?name ?gender ?genderLabel ?year
+        WHERE {
+
+        ## note the service address            
+        SERVICE <https://query.wikidata.org/sparql>
+         { 
+         {?item wdt:P31 wd:Q5 ;
+        p:P39 ?poste.
+  ?poste ps:P39 wd:Q3044918 ;
+         pq:P580 ?starttime.
+  FILTER(YEAR(?starttime) >= 1958)}
+          
+            ?item wdt:P31 wd:Q5;  # Any instance of a human.
+                wdt:P569 ?birthDate; # It must necessarily have a birth date property
+                wdt:P21 ?gender.# It must necessarily have a gender property
+           ?gender rdfs:label ?genderLabel.
+           ?item rdfs:label ?itemLabel.
+           FILTER(LANG(?genderLabel) = 'fr')
+           FILTER(LANG(?itemLabel) = 'fr')
+        BIND(?itemLabel as ?name)  
+        BIND(year(?birthDate) as ?year)
+        #BIND(REPLACE(str(?birthDate), "(.*)([0-9]{4})(.*)", "$2") AS ?year)
+        
+        }
+        }
+    
+
+```
+Effectif réduit à 3807 au 8 mars 2026 en combinant les demandes
