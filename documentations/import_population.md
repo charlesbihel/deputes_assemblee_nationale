@@ -12,10 +12,14 @@ First we check the basic properties of the population: name, gender, year of bir
 
 ```sparql
 PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX ps: <https://w3id.org/payswarm#>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
 
 SELECT DISTINCT ?item  ?gender ?year
@@ -24,20 +28,18 @@ SELECT DISTINCT ?item  ?gender ?year
         ## note the service address            
         SERVICE <https://query.wikidata.org/sparql>
             {
-            {?item wdt:P106 wd:Q11063}  # astronomer
-            UNION
-            {?item wdt:P101 wd:Q333}     # astronomy
-            UNION
-            {?item wdt:P106 wd:Q169470}  # physicist
-            UNION
-            {?item wdt:P101 wd:Q413}     # physics   
+            {?item wdt:P31 wd:Q5 ;
+        p:P39 ?poste.
+  ?poste ps:P39 wd:Q3044918 ;
+         pq:P580 ?starttime.
+  FILTER(YEAR(?starttime) >= 1958)}   
           
             ?item wdt:P31 wd:Q5;  # Any instance of a human.
                 wdt:P569 ?birthDate; # It must necessarily have a birth date property
                 wdt:P21 ?gender. # It must necessarily have a gender property
         BIND(year(?birthDate) as ?year)
         #BIND(REPLACE(str(?birthDate), "(.*)([0-9]{4})(.*)", "$2") AS ?year)
-        FILTER(xsd:integer(?year) > 1780 && xsd:integer(?year) < 1981 )
+    
         
 
         ## No name is added at this stage
@@ -50,14 +52,18 @@ SELECT DISTINCT ?item  ?gender ?year
 
 ### Count number of persons to import
 
-32781 personnes le 8 mars 2026
+3820 personnes le 9 mars 2026
 
 ```sparql
 PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX ps: <https://w3id.org/payswarm#>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
 SELECT (count(*) as ?effectif)
 WHERE {
@@ -67,20 +73,18 @@ WHERE {
             ## note the service address            
             SERVICE <https://query.wikidata.org/sparql>
                 {
-                {?item wdt:P106 wd:Q11063}  # astronomer
-                UNION
-                {?item wdt:P101 wd:Q333}     # astronomy
-                UNION
-                {?item wdt:P106 wd:Q169470}  # physicist
-                UNION
-                {?item wdt:P101 wd:Q413}     # physics   
+                {?item wdt:P31 wd:Q5 ;
+        p:P39 ?poste.
+  ?poste ps:P39 wd:Q3044918 ;
+         pq:P580 ?starttime.
+  FILTER(YEAR(?starttime) >= 1958)} 
             
                 ?item wdt:P31 wd:Q5;  # Any instance of a human.
                     wdt:P569 ?birthDate; # It must necessarily have a birth date property
                     wdt:P21 ?gender. # It must necessarily have a gender property
             BIND(year(?birthDate) as ?year)
             #BIND(REPLACE(str(?birthDate), "(.*)([0-9]{4})(.*)", "$2") AS ?year)
-            FILTER(xsd:integer(?year) > 1780 && xsd:integer(?year) < 1981 )
+        
             
 
             ## No name is added at this stage
@@ -98,11 +102,15 @@ WHERE {
 
 ```sparql
 PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX ps: <https://w3id.org/payswarm#>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
 CONSTRUCT 
         {
@@ -118,20 +126,18 @@ CONSTRUCT
         ## note the service address            
         SERVICE <https://query.wikidata.org/sparql>
             {
-            {?item wdt:P106 wd:Q11063}  # astronomer
-            UNION
-            {?item wdt:P101 wd:Q333}     # astronomy
-            UNION
-            {?item wdt:P106 wd:Q169470}  # physicist
-            UNION
-            {?item wdt:P101 wd:Q413}     # physics   
+           {?item wdt:P31 wd:Q5 ;
+        p:P39 ?poste.
+  ?poste ps:P39 wd:Q3044918 ;
+         pq:P580 ?starttime.
+  FILTER(YEAR(?starttime) >= 1958)}  
           
             ?item wdt:P31 wd:Q5;  # Any instance of a human.
                 wdt:P569 ?birthDate;
                 wdt:P21 ?gender.
         BIND(year(?birthDate) as ?year)
         #BIND(xsd:integer(REPLACE(str(?birthDate), "(.*)([0-9]{4})(.*)", "$2")) AS ?year)
-        FILTER(?year > 1780  && ?year < 1981) 
+        
 
         
         }
@@ -155,47 +161,49 @@ Two import strategies are possible:
 
 The graph URI is in fact a URL pointing to a page with the description of the [imported data](../graphs/wikidata-imported-data.md)
 
-noter pour écrire l'URL doit être /astronphysicists
+noter pour écrire l'URL doit être /deputes_assemblee_nationale
 
 ```sparql
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
 INSERT {
-
         ### Note that the data is imported into a named graph and not the DEFAULT one
-        GRAPH <https://historian.digital/astronomers/graphs-defs.html#wikidata>
-        {?item  wdt:P21 ?gender.
-           ?item wdt:P569 ?year. 
-           # ?item  wdt:P31 wd:Q5.
-           # modifier pour disposer de la propriété standard
-           ?item  rdf:type wd:Q5.
-           }
+        GRAPH <https://charlesbihel.github.io/deputes_assemblee_nationale/graphs-defs.html#wikidata> {
+        ?item  wdt:P21 ?gender.
+        ?item rdfs:label ?itemLabel.
+           ?item wdt:P569 ?birthYear. 
+    ?item  rdf:type wd:Q5.         }
 }
-        
-        WHERE {
+WHERE {
         ## note the service address            
         SERVICE <https://query.wikidata.org/sparql>
             {
-            {?item wdt:P106 wd:Q11063}  # astronomer
-            UNION
-            {?item wdt:P101 wd:Q333}     # astronomy
-            UNION
-            {?item wdt:P106 wd:Q169470}  # physicist
-            UNION
-            {?item wdt:P101 wd:Q413}     # physics   
+            {?item wdt:P31 wd:Q5 ;
+        p:P39 ?poste.
+  ?poste ps:P39 wd:Q3044918 ;
+         pq:P580 ?starttime.
+  FILTER(YEAR(?starttime) >= 1958)
+  }  
           
             ?item wdt:P31 wd:Q5;  # Any instance of a human.
                 wdt:P569 ?birthDate;
                 wdt:P21 ?gender.
-        BIND(year(?birthDate) as ?year)
-        #BIND(xsd:integer(REPLACE(str(?birthDate), "(.*)([0-9]{4})(.*)", "$2")) AS ?year)
-        FILTER(?year > 1780  && ?year < 1981) 
+        BIND(year(?birthDate) as ?birthYear)
+    OPTIONAL {
+         ?item rdfs:label ?itemLabel.
+        FILTER(LANG(?itemLabel) = 'fr')
+    }
+        
         }
         }
+
+
         
 
 ```
@@ -209,20 +217,19 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 
 SELECT *
 WHERE {
-  GRAPH <https://historian.digital/astronomers/graphs-defs.html#wikidata> {
-  ?item  a wd:Q5.
-        ?p ?o
-        }
+  GRAPH <https://charlesbihel.github.io/deputes_assemblee_nationale/graphs-defs.html#wikidata> 
+  {
+  ?item  a wd:Q5;
+        ?p ?o }
 }
 ORDER BY ?item ?p
-LIMIT 20
-        
+LIMIT 20    
 ```
 
 
 ### Count imported data
 
-Imported: 32677
+Imported: 3818
 
 La différence d'effectif peut s'expliquer par des propriétés doubles.
 
@@ -231,7 +238,7 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 
 SELECT (COUNT(*) as ?number)
 WHERE {
-  GRAPH <https://historian.digital/astronomers/graphs-defs.html#wikidata> {
+  GRAPH <https://charlesbihel.github.io/deputes_assemblee_nationale/graphs-defs.html#wikidata> {
   ## deux expressions équivalentes
   # ?item  rdf:type wd:Q5
   ?item  a wd:Q5
@@ -248,7 +255,7 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 
 SELECT (COUNT(*) as ?number) ?item
 WHERE {
-  GRAPH <https://historian.digital/astronomers/graphs-defs.html#wikidata> {
+  GRAPH <https://charlesbihel.github.io/deputes_assemblee_nationale/graphs-defs.html#wikidata> {
   ## deux expressions équivalentes
   # ?item  rdf:type wd:Q5
   ?item  a wd:Q5;
@@ -258,17 +265,18 @@ WHERE {
 GROUP BY ?item
 HAVING (COUNT(*) > 1)
 ```
-
+Une personne dans l'effectif possède deux dates de naissance : Ghislaine Toutain : http://www.wikidata.org/entity/Q3104903
 
 
 ### Multiple genders
 ```
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
 SELECT (COUNT(*) as ?number) ?item
 WHERE {
-  GRAPH <https://historian.digital/astronomers/graphs-defs.html#wikidata> {
+  GRAPH <https://charlesbihel.github.io/deputes_assemblee_nationale/graphs-defs.html#wikidata> {
   ## deux expressions équivalentes
   # ?item  rdf:type wd:Q5
   ?item  a wd:Q5;
@@ -277,6 +285,44 @@ WHERE {
 }
 GROUP BY ?item
 HAVING (COUNT(*) > 1)
+```
+0 personne dans l'effectif possède plusieurs genres
+
+## Multiple labels
+```
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+
+SELECT (COUNT(*) as ?number) ?item
+WHERE {
+  GRAPH <https://charlesbihel.github.io/deputes_assemblee_nationale/graphs-defs.html#wikidata> {
+  ## deux expressions équivalentes
+  # ?item  rdf:type wd:Q5
+  ?item  a wd:Q5;
+    rdfs:label ?label.
+        }
+}
+GROUP BY ?item
+HAVING (COUNT(*) > 1)
+```
+
+### Find persons without labels
+
+O personne dans l'effectif
+
+```
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT (COUNT(*) AS ?number)
+WHERE {
+    GRAPH <https://charlesbihel.github.io/deputes_assemblee_nationale/graphs-defs.html#wikidata> {
+    ?item  a wd:Q5.
+    MINUS { ?item rdfs:label ?label}
+    }
+}
 ```
 
 ## Add labels
@@ -289,7 +335,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
 # CONSTRUCT {?item rdfs:label ?itemLabel}
 INSERT {
-  GRAPH <https://historian.digital/astronomers/graphs-defs.html#wikidata> 
+  GRAPH <https://charlesbihel.github.io/deputes_assemblee_nationale/graphs-defs.html#wikidata> 
 	{?item rdfs:label ?itemLabel}
 }
 WHERE {
@@ -300,7 +346,7 @@ WHERE {
   SERVICE <https://query.wikidata.org/sparql>
     {
       ?item rdfs:label ?itemLabel.
-        FILTER(LANG(?itemLabel) = 'en')
+        FILTER(LANG(?itemLabel) = 'fr')
     }
     
         }
@@ -308,33 +354,6 @@ WHERE {
 
 ```
 
-
-
-
-
-
-### Find English labels
-
-```
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-SELECT ?item ?itemLabel
-WHERE {
-  GRAPH <https://historian.digital/astronomers/graphs-defs.html#wikidata> {
-  ## deux expressions équivalentes
-  # ?item  rdf:type wd:Q5
-  ?item  a wd:Q5.
-  SERVICE <https://query.wikidata.org/sparql>
-    {
-      ?item rdfs:label ?itemLabel.
-        FILTER(LANG(?itemLabel) = 'en')
-    }
-    
-        }
-}
-LIMIT 10
-```
 
 
 
@@ -348,9 +367,10 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
 INSERT DATA {
-    GRAPH <https://github.com/Sciences-historiques-numeriques/astronomers/blob/main/graphs/wikidata-imported-data.md>
+    GRAPH <https://charlesbihel.github.io/deputes_assemblee_nationale/graphs-defs.html#wikidata>
     {
         wd:Q5 rdfs:label "Person".
     }
@@ -367,19 +387,21 @@ PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
 SELECT (COUNT(*) as ?n)
 WHERE
    {
    SELECT DISTINCT ?gender
    WHERE {
-      GRAPH <https://github.com/Sciences-historiques-numeriques/astronomers/blob/main/graphs/wikidata-imported-data.md>
+      GRAPH <https://charlesbihel.github.io/deputes_assemblee_nationale/graphs-defs.html#wikidata>
          {
             ?s wdt:P21 ?gender.
          }
       }
    }
 ```
+Inspect the genders: the number of different genders is three
 
 ```sparql
 ### Insert the class 'gender' for all types of gender
@@ -390,7 +412,7 @@ PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 
-WITH <https://github.com/Sciences-historiques-numeriques/astronomers/blob/main/graphs/wikidata-imported-data.md>
+WITH <https://charlesbihel.github.io/deputes_assemblee_nationale/graphs-defs.html#wikidata>
 INSERT {
    ?gender rdf:type wd:Q48264.
 }
