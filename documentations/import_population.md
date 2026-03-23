@@ -307,10 +307,10 @@ WHERE {
 GROUP BY ?item
 HAVING (COUNT(*) > 1)
 ```
-
+O personne dans l'effectif
 ### Find persons without labels
 
-O personne dans l'effectif
+
 
 ```
 PREFIX wd: <http://www.wikidata.org/entity/>
@@ -324,7 +324,7 @@ WHERE {
     }
 }
 ```
-
+33 dans l'effectif
 ## Add labels
 
 
@@ -339,7 +339,7 @@ INSERT {
 	{?item rdfs:label ?itemLabel}
 }
 WHERE {
-  GRAPH <https://historian.digital/astronomers/graphs-defs.html#wikidata> {
+  GRAPH <https://charlesbihel.github.io/deputes_assemblee_nationale/graphs-defs.html#wikidata> {
   ## deux expressions équivalentes
   # ?item  rdf:type wd:Q5
   ?item  a wd:Q5.
@@ -432,22 +432,101 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
 INSERT DATA {
-    GRAPH <https://github.com/Sciences-historiques-numeriques/astronomers/blob/main/graphs/wikidata-imported-data.md>
+    GRAPH <https://charlesbihel.github.io/deputes_assemblee_nationale/graphs-defs.html#wikidata>
     {
         wd:Q48264 rdfs:label "Gender Identity".
     }
 }
 
 ```
+
+### Verify the available classes
+
+The result should be Person and Gender.
+
+```
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+select distinct ?class ?classLabel
+where {
+
+    GRAPH <https://charlesbihel.github.io/deputes_assemblee_nationale/graphs-defs.html#wikidata> {
+  ?s a ?class.
+  ?class rdfs:label ?classLabel
+  }
+}
+```
+
+### Find gender labels
+
+```
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+
+SELECT ?gen ?genLabel
+WHERE {  
+
+    {SELECT DISTINCT ?gen
+    WHERE {
+        GRAPH <https://charlesbihel.github.io/deputes_assemblee_nationale/graphs-defs.html#wikidata>  
+            {?s wdt:P21 ?gen}
+    }
+    }   
+
+    SERVICE  <https://query.wikidata.org/sparql> {
+        ## Add this clause in order to fill the variable  
+        BIND(?gen as ?gen)
+        ?gen rdfs:label ?genLabel
+    FILTER(LANG(?genLabel) = 'fr')
+    }
+}
+```
+
+### Add gender labels
+
+```
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+
+INSERT {
+    GRAPH <https://charlesbihel.github.io/deputes_assemblee_nationale/graphs-defs.html#wikidata>
+    {?gen rdfs:label ?genLabel}
+}
+WHERE {  
+
+    {SELECT DISTINCT ?gen
+    WHERE {
+        GRAPH <https://charlesbihel.github.io/deputes_assemblee_nationale/graphs-defs.html#wikidata>  
+            {?s wdt:P21 ?gen}
+    }
+    }   
+
+    SERVICE  <https://query.wikidata.org/sparql> {
+        ## Add this clause in order to fill the variable  
+        BIND(?gen as ?gen)
+        ?gen rdfs:label ?genLabel
+    FILTER(LANG(?genLabel) = 'fr')
+    }
+}
+```
+
+
+
+
 ### Verify imported triples and add labels to genders
 
 ```sparql
-### Number of triples in the graph
+### Number of triples in the graph : 39412
 SELECT (COUNT(*) as ?n)
 WHERE {
-    GRAPH <https://github.com/Sciences-historiques-numeriques/astronomers/blob/main/graphs/wikidata-imported-data.md>
+    GRAPH <https://charlesbihel.github.io/deputes_assemblee_nationale/graphs-defs.html#wikidata>
         {?s ?p ?o}
 }
 ```
@@ -456,7 +535,7 @@ WHERE {
 ### Number of persons with more than one label : no person
 SELECT (COUNT(*) as ?n)
 WHERE {
-    GRAPH <https://github.com/Sciences-historiques-numeriques/astronomers/blob/main/graphs/wikidata-imported-data.md>
+    GRAPH <https://charlesbihel.github.io/deputes_assemblee_nationale/graphs-defs.html#wikidata>
         {?s rdf:label ?o}
 }
 GROUP BY ?s
@@ -469,9 +548,9 @@ HAVING (?n > 1)
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 
-SELECT ?s (COUNT(*) as ?n)
+SELECT ?s (COUNT(DISTINCT ?item) as ?n)
 WHERE {
-    GRAPH <https://github.com/Sciences-historiques-numeriques/astronomers/blob/main/graphs/wikidata-imported-data.md>
+    GRAPH <https://charlesbihel.github.io/deputes_assemblee_nationale/graphs-defs.html#wikidata>
         {?s wdt:P21 ?gen}
 }
 GROUP BY ?s
@@ -483,9 +562,9 @@ HAVING (?n > 1)
 PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 
-SELECT ?gen (COUNT(*) as ?n)
+SELECT ?gen (COUNT(DISTINCT ?item) as ?n)
 WHERE {
-    GRAPH <https://github.com/Sciences-historiques-numeriques/astronomers/blob/main/graphs/wikidata-imported-data.md>
+    GRAPH <https://charlesbihel.github.io/deputes_assemblee_nationale/graphs-defs.html#wikidata>
         {?s wdt:P21 ?gen}
 }
 GROUP BY ?gen
@@ -499,10 +578,10 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 
 SELECT ?gen (COUNT(*) as ?n)
 WHERE {
-    GRAPH <https://github.com/Sciences-historiques-numeriques/astronomers/blob/main/graphs/wikidata-imported-data.md>
+    GRAPH <https://charlesbihel.github.io/deputes_assemblee_nationale/graphs-defs.html#wikidata>
         {?s wdt:P21 ?gen;
             wdt:P569 ?birthDate.
-        FILTER (?birthDate < '1900')     
+        FILTER (?birthDate < '2000')     
           }
 }
 GROUP BY ?gen
@@ -527,7 +606,7 @@ WHERE {
 
     {SELECT DISTINCT ?gen
     WHERE {
-        GRAPH <https://github.com/Sciences-historiques-numeriques/astronomers/blob/main/graphs/wikidata-imported-data.md>    
+        GRAPH <https://charlesbihel.github.io/deputes_assemblee_nationale/graphs-defs.html#wikidata>    
             {?s wdt:P21 ?gen}
     }
     }   
@@ -536,7 +615,7 @@ WHERE {
         ## Add this clause in order to fill the variable      
         BIND(?gen as ?gen)
         BIND ( ?genLabel as ?genLabel)
-        SERVICE wikibase:label { bd:serviceParam wikibase:language "en" }  
+        SERVICE wikibase:label { bd:serviceParam wikibase:language "fr" }  
     }
 }
 ```
@@ -560,7 +639,7 @@ WHERE {
 
     {SELECT DISTINCT ?gen
     WHERE {
-        GRAPH <https://github.com/Sciences-historiques-numeriques/astronomers/blob/main/graphs/wikidata-imported-data.md>    
+        GRAPH <https://charlesbihel.github.io/deputes_assemblee_nationale/graphs-defs.html#wikidata>    
             {?s wdt:P21 ?gen}
     }
     }   
@@ -569,7 +648,7 @@ WHERE {
         ## Add this clause in order to fill the variable      
         BIND(?gen as ?gen)
         BIND ( ?genLabel as ?genLabel)
-        SERVICE wikibase:label { bd:serviceParam wikibase:language "en" }  
+        SERVICE wikibase:label { bd:serviceParam wikibase:language "fr" }  
     }
 }
 ```
@@ -583,7 +662,7 @@ PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
-WITH <https://github.com/Sciences-historiques-numeriques/astronomers/blob/main/graphs/wikidata-imported-data.md> 
+WITH <https://charlesbihel.github.io/deputes_assemblee_nationale/graphs-defs.html#wikidata> 
 INSERT {
      ?gen rdfs:label ?genLabel
     
@@ -592,7 +671,7 @@ WHERE {
 
     {SELECT DISTINCT ?gen
     WHERE {
-        GRAPH <https://github.com/Sciences-historiques-numeriques/astronomers/blob/main/graphs/wikidata-imported-data.md>    
+        GRAPH <https://charlesbihel.github.io/deputes_assemblee_nationale/graphs-defs.html#wikidata>    
             {?s wdt:P21 ?gen}
     }
     }   
@@ -601,7 +680,7 @@ WHERE {
         ## Add this clause in order to fill the variable      
         BIND(?gen as ?gen)
         BIND ( ?genLabel as ?genLabel)
-        SERVICE wikibase:label { bd:serviceParam wikibase:language "en" }  
+        SERVICE wikibase:label { bd:serviceParam wikibase:language "fr" }  
     }
 }
 ```
@@ -620,7 +699,7 @@ WHERE
     {
     SELECT ?gen (COUNT(*) as ?n)
         WHERE {
-            GRAPH <https://github.com/Sciences-historiques-numeriques/astronomers/blob/main/graphs/wikidata-imported-data.md>  
+            GRAPH <https://charlesbihel.github.io/deputes_assemblee_nationale/graphs-defs.html#wikidata>  
                     {
             ?s wdt:P21 ?gen.
             }
@@ -641,7 +720,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
 SELECT ?s ?label ?birthDate ?genLabel
 WHERE {
-    GRAPH <https://github.com/Sciences-historiques-numeriques/astronomers/blob/main/graphs/wikidata-imported-data.md>
+    GRAPH <https://charlesbihel.github.io/deputes_assemblee_nationale/graphs-defs.html#wikidata>
         {
             ## A property path passes through 
             # two or more properties
@@ -663,7 +742,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
 SELECT (COUNT(*) as ?n)
 WHERE {
-    GRAPH <https://github.com/Sciences-historiques-numeriques/astronomers/blob/main/graphs/wikidata-imported-data.md>
+    GRAPH <https://charlesbihel.github.io/deputes_assemblee_nationale/graphs-defs.html#wikidata>
         {
           # ?s wdt:P31 wd:Q5 
           ?s a wd:Q5
@@ -683,7 +762,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 SELECT  ?s (MAX(?label) as ?label) (xsd:integer(MAX(?birthDate)) as ?birthDate) 
     (MAX(?gen) as ?gen) (MAX(?genLabel) AS ?genLabel)
 WHERE {
-    GRAPH <https://github.com/Sciences-historiques-numeriques/astronomers/blob/main/graphs/wikidata-imported-data.md>
+    GRAPH <https://charlesbihel.github.io/deputes_assemblee_nationale/graphs-defs.html#wikidata>
         {?s wdt:P21 ?gen;
             rdfs:label ?label;
             wdt:P569 ?birthDate.
@@ -707,7 +786,7 @@ WHERE {
 SELECT  ?s (MAX(?label) as ?label) (xsd:integer(MAX(?birthDate)) as ?birthDate) 
             (MAX(?gen) as ?gen) (MAX(?genLabel) AS ?genLabel)
 WHERE {
-    GRAPH <https://github.com/Sciences-historiques-numeriques/astronomers/blob/main/graphs/wikidata-imported-data.md>
+    GRAPH <https://charlesbihel.github.io/deputes_assemblee_nationale/graphs-defs.html#wikidata>
         {?s wdt:P21 ?gen;
             rdfs:label ?label;
             wdt:P569 ?birthDate.
@@ -725,7 +804,7 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
 INSERT DATA {
-GRAPH <https://github.com/Sciences-historiques-numeriques/astronomers/blob/main/graphs/wikidata-imported-data.md>
+GRAPH <https://charlesbihel.github.io/deputes_assemblee_nationale/graphs-defs.html#wikidata>
 {    wdt:P569 rdfs:label "date of birth"
 }    
 }
@@ -741,7 +820,7 @@ PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
 INSERT DATA {
-GRAPH <https://github.com/Sciences-historiques-numeriques/astronomers/blob/main/graphs/wikidata-imported-data.md>
+GRAPH <https://charlesbihel.github.io/deputes_assemblee_nationale/graphs-defs.html#wikidata>
 {    wdt:P21 rdfs:label "sex or gender"
 }    
 }
