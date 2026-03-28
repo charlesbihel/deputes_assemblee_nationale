@@ -85,67 +85,33 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
 SELECT DISTINCT (?item AS ?person_uri) ?person_label
 WHERE {
-            {?item wdt:P106 wd:Q11063}  # astronomer
-            UNION
-            {?item wdt:P101 wd:Q333}     # astronomy
-            UNION
-            {?item wdt:P106 wd:Q169470}  # physicist
-            UNION
-            {?item wdt:P101 wd:Q413}     # physics   
+             {?item wdt:P31 wd:Q5 ;
+        p:P39 ?poste.
+  ?poste ps:P39 wd:Q3044918 ;
+         pq:P580 ?starttime.
+  FILTER(YEAR(?starttime) >= 1958)}   
   
             ?item wdt:P31 wd:Q5;  # Any instance of a human.
                 wdt:P569 ?birthDate; # It must necessarily have a birth date property
 
         BIND(year(?birthDate) as ?year)
-        FILTER(xsd:integer(?year) > 1780 && xsd:integer(?year) < 1981 )
+        
   
             ?item rdfs:label ?person_label.
-            FILTER(LANG(?person_label) = 'en')
+            FILTER(LANG(?person_label) = 'fr')
         }
 ORDER BY ?item
 ```
 
 * execute the SPARQL query
-* export the result in a CSV file called 'data/wdt_csv_data/person_label_en_import.csv'
+* export the result in a CSV file called 'data/wdt_csv_data/person_label_fr_import.csv'
 * import the CSV into the SQLITE database as you did above
 
 
 
-### We then look for non-English labels for the missing ones
-
-```
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
 
-SELECT DISTINCT (?item AS ?person_uri) (min(?person_label_al) as ?person_label )
-#SELECT (COUNT(*) AS ?n)
-WHERE {
-            {?item wdt:P106 wd:Q11063}  # astronomer
-            UNION
-            {?item wdt:P101 wd:Q333}     # astronomy
-            UNION
-            {?item wdt:P106 wd:Q169470}  # physicist
-            UNION
-            {?item wdt:P101 wd:Q413}     # physics   
-  
-            ?item wdt:P31 wd:Q5;  # Any instance of a human.
-                wdt:P569 ?birthDate; # It must necessarily have a birth date property
 
-        BIND(year(?birthDate) as ?year)
-        FILTER(xsd:integer(?year) > 1780 && xsd:integer(?year) < 1981 )
-        MINUS{?item rdfs:label ?person_label_en.
-              FILTER(LANG(?person_label_en) = 'en')   }
-       ?item rdfs:label ?person_label_al.
-        }
-GROUP BY ?item
-```
-
-* save the query result in a CSV file called 'data/wdt_csv_data/person_label_non_en_import.csv'
-* import the CSV file into the same table as the English labels
-  * select the person_label_en_import table, then menu import data, from CSV file, inspect the columns and data before import, do not select "Truncate the target table" and the data will be added at the bottom of the existing table
 
 * inspect the new table with the scripts available in the file [*import-population-sqlite.sql*](import-population-sqlite.sql) 
 
