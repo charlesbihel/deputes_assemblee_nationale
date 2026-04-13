@@ -120,3 +120,9 @@ WHERE length(gender) > 1
 ORDER BY gender ASC
 --LIMIT 10
 ;
+--cleaned up
+SELECT wikidata_uri, label, birth_year, gender
+FROM person
+WHERE length(gender) > 1
+ORDER BY gender ASC
+;
