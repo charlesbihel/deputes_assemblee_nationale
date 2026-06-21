@@ -106,13 +106,16 @@ Effectifs relevés au 1er mars 2026 : 8655
 ### Distinguer les individus au sein de l'effectif
 
 ```
-SELECT (COUNT(DISTINCT ?item) as ?eff)
+SELECT (COUNT(*) as ?eff)
 WHERE {
+    SELECT DISTINCT ?item
+    WHERE {
   ?item wdt:P31 wd:Q5 ;
         p:P39 ?poste.
   ?poste ps:P39 wd:Q3044918 ;
          pq:P580 ?starttime.
   FILTER(YEAR(?starttime) >= 1958)
+}
 }
 ```
 Nombre d'individus différents au sein de l'effectif relevé au 1 mars 2026 : 3819
@@ -183,7 +186,50 @@ BIND(CONCAT(STR(FLOOR(YEAR(?starttime)/10)*10), "s")AS ?decennie)
 
 Certains députés sont présents d'une décennie sur l'autre ce qui augmente l'effectif total
 
+### Nombre de députés par présidents
 
+```
+SELECT ?tranche (COUNT(DISTINCT ?item) AS ?eff)
+WHERE {
+    ?item wdt:P31 wd:Q5 ;
+        p:P39 ?poste.
+  ?poste ps:P39 wd:Q3044918 ;
+         pq:P580 ?starttime.
+  FILTER(YEAR(?starttime) >= 1958)
+
+#On crée une variable ?tranche selon l'année
+BIND(
+    IF(YEAR(?starttime)<1970,'1958-1969',
+    IF(YEAR(?starttime)<1975,'1969-1974',
+    IF(YEAR(?starttime)<1982,'1974-1981',
+    IF(YEAR(?starttime)<1996,'1981-1995',
+    IF(YEAR(?starttime)<2008,'1995-2007',
+    IF(YEAR(?starttime)<2013,'2007-2012',
+    IF(YEAR(?starttime)<2018,'2012-2017',
+    IF(YEAR(?starttime)<2027,'2017-2027', '2027+'))))))))
+    AS ?tranche)
+
+}
+GROUP BY ?tranche
+ORDER BY ?tranche 
+```
+#
+	            ?tranche	 ?eff
+1	 Charles De Gaulle 1958-1969	: 826
+
+2	Georges Pompidou 1969-1974	: 401
+
+3	Valéry Giscard D'Estaing 1974-1981	: 583
+
+4	François Mitterand 1981-1995	: 930
+
+5	Jacques Chirac 1995-2007	: 934
+
+6	Nicolas Sarkozy 2007-2012	: 649
+
+7	François Hollande 2012-2017	: 649
+
+Emmanuel Macron	2017-2027	: 892
 ### Persons filtered by birth year
 
 Par exemple ici les députés de la 5e République
@@ -203,7 +249,9 @@ SELECT DISTINCT ?item ?itemLabel ?year
          pq:P580 ?starttime.
   FILTER(YEAR(?starttime) >= 1958)
             }
-ORDER BY ?item 
+?item rdfs:label ?itemLabel.
+  FILTER (LANG(?itemLabel) = "fr") .
+ORDER BY ?item ?itemlabel 
 ```
 NB: il peut y avoir des doublons si les dates de naissance sont multiples. La clause DISTINCT permet d'enlever les doublons il faut toutefois enlever la variable *?birthDate* de la sortie et laisser seulement l'année
 
@@ -406,7 +454,8 @@ On doit dans cette requête sortir du cadre classique de la simple propriété '
         BIND(REPLACE(str(?birthDate), "(.*)([0-9]{4})(.*)", "$2") AS ?birthYear)
         FILTER(xsd:integer(?birthYear) > 1800)
             
-        SERVICE wikibase:label { bd:serviceParam wikibase:language "fr" }
+        ?item rdfs:label ?itemLabel.
+    FILTER(LANG(?itemLabel) = 'fr')
         }
     ORDER BY ?birthYear ?startYear
 ```
@@ -414,6 +463,17 @@ On doit dans cette requête sortir du cadre classique de la simple propriété '
 
 
 ```
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?organization ?organizationLabel (COUNT (DISTINCT ?item) AS ?eff)
+WHERE {
 SELECT DISTINCT ?item ?itemLabel ?birthYear ?statement ?organization ?organizationLabel 
                     ?startYear ?endYear  ?startTime ?endTime
     where {
@@ -432,7 +492,8 @@ SELECT DISTINCT ?item ?itemLabel ?birthYear ?statement ?organization ?organizati
         OPTIONAL {
                         ?statement pq:P580 ?startTime;
                         pq:P582 ?endTime.
-            }
+            
+			}
         
         BIND(REPLACE(str(?startTime), "(.*)([0-9]{4})(.*)", "$2") AS ?startYear)
         BIND(REPLACE(str(?endTime), "(.*)([0-9]{4})(.*)", "$2") AS ?endYear)
@@ -440,16 +501,28 @@ SELECT DISTINCT ?item ?itemLabel ?birthYear ?statement ?organization ?organizati
         BIND(REPLACE(str(?birthDate), "(.*)([0-9]{4})(.*)", "$2") AS ?birthYear)
         FILTER(xsd:integer(?birthYear) > 1800)
             
-        SERVICE wikibase:label { bd:serviceParam wikibase:language "fr" }
+         ?item rdfs:label ?itemLabel.
+    FILTER(LANG(?itemLabel) = 'fr')
+	}
         }
-    ORDER BY ?birthYear ?startYear
+GROUP BY ?organization ?organizationLabel 
+ORDER BY DESC (?eff) 
 ```
 
 ### Autre exemple
 
 ```
-     SELECT DISTINCT ?item ?itemLabel ?birthYear ?statement ?organization ?organizationLabel 
-                    ?startYear ?endYear  ?startTime ?endTime
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT DISTINCT ?item ?itemLabel ?birthYear ?statement ?organization ?organizationLabel 
+                    ?startYear ?endYear  ?starttime ?endtime
     where {
             
          {?item wdt:P31 wd:Q5 ;
@@ -470,20 +543,61 @@ SELECT DISTINCT ?item ?itemLabel ?birthYear ?statement ?organization ?organizati
               # employer
                 #p:P108 ?statement.
                 #?statement ps:P108 ?organization.
-      #  OPTIONAL
-      {
-                        ?statement pq:P580 ?startTime;
-                        pq:P582 ?endTime.
-            }
-        
-        BIND(REPLACE(str(?startTime), "(.*)([0-9]{4})(.*)", "$2") AS ?startYear)
-        BIND(REPLACE(str(?endTime), "(.*)([0-9]{4})(.*)", "$2") AS ?endYear)
+     
+        BIND(REPLACE(str(?starttime), "(.*)([0-9]{4})(.*)", "$2") AS ?startYear)
+        BIND(REPLACE(str(?endtime), "(.*)([0-9]{4})(.*)", "$2") AS ?endYear)
         
         BIND(REPLACE(str(?birthDate), "(.*)([0-9]{4})(.*)", "$2") AS ?birthYear)
         FILTER(xsd:integer(?birthYear) > 1800)
             
-        SERVICE wikibase:label { bd:serviceParam wikibase:language "fr" }
+        ?item rdfs:label ?itemLabel.
+    FILTER(LANG(?itemLabel) = 'fr')
         }
     ORDER BY ?item
     
+```
+Les résultats peuvent ensuite être expolités sous la forme de fichier csv
+
+### Nombre d'appartenance à une organisation par un député classé par ordre croissant
+```
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX p: <http://www.wikidata.org/prop/>
+PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?item ?itemLabel (COUNT ( ?organization) as ?eff)
+WHERE {
+SELECT DISTINCT ?item ?itemLabel ?birthYear ?statement ?organization ?organizationLabel ?startYear ?endYear ?starttime
+WHERE {
+  {
+    ?item wdt:P31 wd:Q5 ;
+          p:P39 ?poste .
+    ?poste ps:P39 wd:Q3044918 ;
+           pq:P580 ?starttime .
+    FILTER (YEAR(?starttime) >= 1958)
+  }
+  ?item wdt:P31 wd:Q5 ; # Any instance of a human.
+        wdt:P569 ?birthDate ;
+  # member of
+  # p:P39 ?statement.
+  # ?statement ps:P39 ?organization.
+  # educated at
+        p:P69 ?statement .
+  ?statement ps:P69 ?organization .
+  # employer
+  #p:P108 ?statement.
+  #?statement ps:P108 ?organization.
+  BIND (REPLACE(STR(?starttime), "(.*)([0-9]{4})(.*)", "$2") AS ?startYear)
+  BIND (REPLACE(STR(?endtime), "(.*)([0-9]{4})(.*)", "$2") AS ?endYear)
+  BIND (REPLACE(STR(?birthDate), "(.*)([0-9]{4})(.*)", "$2") AS ?birthYear)
+  FILTER (xsd:integer(?birthYear) > 1800)
+  ?item rdfs:label ?itemLabel .
+  FILTER (LANG(?itemLabel) = 'fr')
+}
+}
+GROUP BY ?item ?itemLabel
+ORDER BY DESC (?eff)
 ```
