@@ -1,0 +1,48 @@
+<?xml version='1.0' encoding='utf-8'?>
+<gexf xmlns="http://www.gexf.net/1.2draft" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.gexf.net/1.2draft http://www.gexf.net/1.2draft/gexf.xsd" version="1.2">
+  <meta lastmodifieddate="2026-06-23">
+    <creator>NetworkX 3.6.1</creator>
+  </meta>
+  <graph defaultedgetype="undirected" mode="static" name="">
+    <attributes mode="static" class="edge">
+      <attribute id="4" title="orgsLabels" type="string" />
+      <attribute id="5" title="orgsNumber" type="long" />
+      <attribute id="6" title="per_activ_x" type="string" />
+      <attribute id="7" title="per_activ_y" type="string" />
+    </attributes>
+    <attributes mode="static" class="node">
+      <attribute id="0" title="birthYear" type="long" />
+      <attribute id="1" title="gender" type="string" />
+      <attribute id="2" title="per_activ" type="string" />
+      <attribute id="3" title="country" type="string" />
+    </attributes>
+    <nodes>
+      <node id="http://www.wikidata.org/entity/Q334065" label="Cédric Villani">
+        <attvalues>
+          <attvalue for="0" value="1973" />
+          <attvalue for="1" value="masculin" />
+          <attvalue for="2" value="1996-2020" />
+          <attvalue for="3" value="France" />
+        </attvalues>
+      </node>
+      <node id="http://www.wikidata.org/entity/Q268595" label="Nathalie Kosciusko-Morizet">
+        <attvalues>
+          <attvalue for="0" value="1973" />
+          <attvalue for="1" value="féminin" />
+          <attvalue for="2" value="1996-2020" />
+          <attvalue for="3" value="France" />
+        </attvalues>
+      </node>
+    </nodes>
+    <edges>
+      <edge source="http://www.wikidata.org/entity/Q334065" target="http://www.wikidata.org/entity/Q268595" id="0">
+        <attvalues>
+          <attvalue for="4" value="lycée Louis-le-Grand" />
+          <attvalue for="5" value="1" />
+          <attvalue for="6" value="1996-2020" />
+          <attvalue for="7" value="1996-2020" />
+        </attvalues>
+      </edge>
+    </edges>
+  </graph>
+</gexf>
