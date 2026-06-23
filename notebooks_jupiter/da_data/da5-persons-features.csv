@@ -1,4 +1,4 @@
-"pk_person_features","person_uri","occupation_main","occupation_sec1","coded_employer"
+pk_person_features,person_uri,occupation_main,occupation_sec1,coded_employer
 7,http://www.wikidata.org/entity/Q106020252,personnalité politique,cadres-administratifs-et-commerciaux-d'entreprise,organisation
 11,http://www.wikidata.org/entity/Q106635078,personnalité politique,anciens-cadres,other
 19,http://www.wikidata.org/entity/Q109681600,personnalité politique,syndicaliste,other
