@@ -1,4 +1,4 @@
-"pk_person_features","person_uri","occupation_main","occupation_sec1","occupation_sec2","field_main","field_sec1","field_sec2","fk_person","notes"
+pk_person_features,person_uri,occupation_main,occupation_sec1,occupation_sec2,field_main,field_sec1,field_sec2,fk_person,notes
 1,http://www.wikidata.org/entity/Q101410,personnalité politique,avocat-ou-avocate,juriste,,,,1,
 2,http://www.wikidata.org/entity/Q1027406,personnalité politique,NA,NA,,,,2,
 3,http://www.wikidata.org/entity/Q1027528,personnalité politique,pensionné,NA,,,,3,
